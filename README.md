@@ -217,6 +217,7 @@ The "Telnet" library is also available on the PlatformIO registry and can be inc
 MIT License
 
 Copyright 2025 Fred N. van Kempen
+
 Copyright 2018-2025 Lennart Hennigs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
