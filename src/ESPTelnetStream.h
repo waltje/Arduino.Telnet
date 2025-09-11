@@ -6,13 +6,20 @@
 
 /////////////////////////////////////////////////////////////////
 
-#include "ESPTelnetBase.h"
+#if defined(TELNET_USE_ETHERNET)
+# include "ETHTelnetBase.h"
+# define TelnetStream ETHTelnetStream
+#else
+# include "ESPTelnetBase.h"
+# define TelnetStream ESPTelnetStream
+#endif
 
+#ifdef TNetwork
 /////////////////////////////////////////////////////////////////
 
-class ESPTelnetStream : public ESPTelnetBase, public Stream {
+class TelnetStream : public TelnetBaseClass, public Stream {
  public:
-  using ESPTelnetBase::ESPTelnetBase;
+  using TelnetBaseClass::TelnetBaseClass;
 
   int available();
   int read();
@@ -29,9 +36,11 @@ class ESPTelnetStream : public ESPTelnetBase, public Stream {
 /////////////////////////////////////////////////////////////////
 
 // << operator
-//  template<class T> inline ESPTelnetStream &operator <<(ESPTelnetStream &obj, T arg) { obj.print(arg); return obj; }
+//  template<class T> inline TelnetStream &operator <<(TelnetStream &obj, T arg) { obj.print(arg); return obj; }
 
 /////////////////////////////////////////////////////////////////
+
+#endif  /*TNetwork*/
 
 #endif
 /////////////////////////////////////////////////////////////////

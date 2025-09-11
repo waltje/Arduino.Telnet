@@ -6,13 +6,21 @@
 
 /////////////////////////////////////////////////////////////////
 
-#include "ESPTelnetBase.h"
+#if defined(TELNET_USE_ETHERNET)
+# include "ETHTelnetBase.h"
+# define Telnet ETHTelnet
+#else
+# include "ESPTelnetBase.h"
+# define Telnet ESPTelnet
+#endif
+
+#ifdef TNetwork
 
 /////////////////////////////////////////////////////////////////
 
-class ESPTelnet : public ESPTelnetBase {
+class Telnet : public TelnetBaseClass {
  public:
-  using ESPTelnetBase::ESPTelnetBase;
+  using TelnetBaseClass::TelnetBaseClass;
 
   
   template<typename T>
@@ -61,6 +69,7 @@ class ESPTelnet : public ESPTelnetBase {
 
   void println();
   size_t printf(const char *format, ...);
+  size_t vprintf(const char *format, va_list);
 
   bool isLineModeSet();
   void setLineMode(bool value = true);
@@ -79,10 +88,12 @@ class ESPTelnet : public ESPTelnetBase {
 
 // << operator
 template <class T>
-inline ESPTelnet &operator<<(ESPTelnet &obj, T arg) {
+inline Telnet &operator<<(Telnet &obj, T arg) {
   obj.print(arg);
   return obj;
 }
+
+#endif  /*TNetwork*/
 
 /////////////////////////////////////////////////////////////////
 #endif

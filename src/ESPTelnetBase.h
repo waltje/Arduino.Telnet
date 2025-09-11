@@ -18,25 +18,45 @@
 #include <Arduino.h>
 #if defined(ARDUINO_ARCH_ESP32)
 #include <WiFi.h>
+#define TNetwork WiFi
+#define TClient WiFiClient
+#define TServer WiFiServer
 #elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
+#define TNetwork WiFi
+#define TClient WiFiClient
+#define TServer WiFiServer
+#elif defined(TELNET_USE_ETHERNET)
+#include <EthernetNG.h>
+#include <EthernetClient.h>
+#include <EthernetServer.h>
+#define TNetwork Ethernet
+#define TClient EthernetClient
+#define TServer EthernetServer
 #endif
 
+#ifdef TNetwork
 /////////////////////////////////////////////////////////////////
 
 #include "DebugMacros.h"
 
 /////////////////////////////////////////////////////////////////
 
-using TCPClient = WiFiClient;
-using TCPServer = WiFiServer;
+using TCPClient = TClient;
+using TCPServer = TServer;
+
+#if defined(TELNET_USE_ETHERNET)
+# define TelnetBaseClass    ESPTelnetBase
+#else
+# define TelnetBaseClass    ETHTelnetBase
+#endif
 
 /////////////////////////////////////////////////////////////////
-class ESPTelnetBase {
+class TelnetBaseClass {
   typedef void (*CallbackFunction)(String str);
 
  public:
-  ESPTelnetBase();
+  TelnetBaseClass();
 
   bool begin(uint16_t port = 23, bool checkConnection = true);
   void stop();
@@ -101,6 +121,8 @@ class ESPTelnetBase {
   bool doKeepAliveCheckNow();
 
 };
+
+#endif  /*TNetwork*/
 
 /////////////////////////////////////////////////////////////////
 #endif

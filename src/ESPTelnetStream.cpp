@@ -1,17 +1,22 @@
 /////////////////////////////////////////////////////////////////
 
-#include "ESPTelnetStream.h"
+#if defined(TELNET_USE_ETHERNET)
+# include "ETHTelnetStream.h"
+#else
+# include "ESPTelnetStream.h"
+#endif
 
+#ifdef TNetwork
 /////////////////////////////////////////////////////////////////
 
-void ESPTelnetStream::handleInput() {
+void TelnetStream::handleInput() {
   char c = client.read();
   on_input(String(c));
 }
 
 /////////////////////////////////////////////////////////////////
 
-int ESPTelnetStream::available() {
+int TelnetStream::available() {
   if (client && isConnected()) {
     return client.available();
   } else {
@@ -21,7 +26,7 @@ int ESPTelnetStream::available() {
 
 /////////////////////////////////////////////////////////////////
 
-int ESPTelnetStream::read() {
+int TelnetStream::read() {
   if (client && isConnected()) {
     return client.read();
   } else {
@@ -31,7 +36,7 @@ int ESPTelnetStream::read() {
 
 /////////////////////////////////////////////////////////////////
 
-int ESPTelnetStream::peek() {
+int TelnetStream::peek() {
   if (client && isConnected()) {
     return client.peek();
   } else {
@@ -41,20 +46,22 @@ int ESPTelnetStream::peek() {
 
 /////////////////////////////////////////////////////////////////
 
-void ESPTelnetStream::flush() {
-  return ESPTelnetBase::flush();
+void TelnetStream::flush() {
+  return TelnetBaseClass::flush();
 }
 
 /////////////////////////////////////////////////////////////////
 
-size_t ESPTelnetStream::write(uint8_t data) {
-  return ESPTelnetBase::write(data);
+size_t TelnetStream::write(uint8_t data) {
+  return TelnetBaseClass::write(data);
 }
 
 /////////////////////////////////////////////////////////////////
 
-size_t ESPTelnetStream::write(const uint8_t* data, size_t size) {
-  return ESPTelnetBase::write(data, size);
+size_t TelnetStream::write(const uint8_t* data, size_t size) {
+  return TelnetBaseClass::write(data, size);
 }
 
 /////////////////////////////////////////////////////////////////
+
+#endif  /*TNetwork*/

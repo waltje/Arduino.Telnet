@@ -1,10 +1,20 @@
+////////////////////////////////////////////////////////////////
+
+#if defined(TELNET_USE_ETHERNET)
+# include "ETHTelnet.h"
+#else
+# include "ESPTelnet.h"
+#endif
+
+#ifdef TNetwork
+
+#ifndef ESPTELNET_VPRINTF_BUFFER_SIZE
+#define ESPTELNET_VPRINTF_BUFFER_SIZE 64
+#endif
+
 /////////////////////////////////////////////////////////////////
 
-#include "ESPTelnet.h"
-
-/////////////////////////////////////////////////////////////////
-
-void ESPTelnet::handleInput() {
+void Telnet::handleInput() {
   char c = client.read();
   // collect string
   if (_lineMode) {
@@ -30,7 +40,7 @@ void ESPTelnet::handleInput() {
 
 /////////////////////////////////////////////////////////////////
 
-void ESPTelnet::println() {
+void Telnet::println() {
   if (client && isConnected()) {
     if (!client.println()) {
       onFailedWrite();
@@ -42,15 +52,19 @@ void ESPTelnet::println() {
 
 /////////////////////////////////////////////////////////////////
 
-size_t ESPTelnet::printf(const char* format, ...) {
+size_t Telnet::printf(const char* format, ...) {
   if (!client || !isConnected()) return 0;
   
   va_list arg;
   va_start(arg, format);
-  char loc_buf[64];
-  int len = vsnprintf(loc_buf, sizeof(loc_buf), format, arg);
+  size_t len = vprintf(format, arg);
   va_end(arg);
+  return len;
+}
 
+size_t Telnet::vprintf(const char* format, va_list arg) {
+  char loc_buf[ESPTELNET_VPRINTF_BUFFER_SIZE];
+  int len = vsnprintf(loc_buf, sizeof(loc_buf), format, arg);
   if (len < 0) return 0;
 
   if (len >= (int)sizeof(loc_buf)) {
@@ -58,9 +72,7 @@ size_t ESPTelnet::printf(const char* format, ...) {
     if (temp == nullptr) {
       return 0;
     }
-    va_start(arg, format);
     vsnprintf(temp, len + 1, format, arg);
-    va_end(arg);
     len = write((uint8_t*)temp, len);
     free(temp);
   } else {
@@ -71,26 +83,28 @@ size_t ESPTelnet::printf(const char* format, ...) {
 }
 /////////////////////////////////////////////////////////////////
 
-bool ESPTelnet::isLineModeSet() {
+bool Telnet::isLineModeSet() {
   return _lineMode;
 }
 
 /////////////////////////////////////////////////////////////////
 
-void ESPTelnet::setLineMode(bool value /* = true */) {
+void Telnet::setLineMode(bool value /* = true */) {
   _lineMode = value;
 }
 
 /////////////////////////////////////////////////////////////////
 
-char ESPTelnet::getNewlineCharacter() {
+char Telnet::getNewlineCharacter() {
   return _newlineCharacter;
 }
 
 /////////////////////////////////////////////////////////////////
 
-void ESPTelnet::setNewlineCharacter(char value /* = '\n' */) {
+void Telnet::setNewlineCharacter(char value /* = '\n' */) {
   _newlineCharacter = value;
 }
 
 /////////////////////////////////////////////////////////////////
+
+#endif  /*TNetwork*/

@@ -1,8 +1,10 @@
+// An example showing how to use ESPTelnet with the standard ESP logger
+
 /* ------------------------------------------------- */
 
 #include <Arduino.h>
+#include <esp32-hal-log.h>
 #include "ESPTelnet.h"
-#include "EscapeCodes.h"
 
 /* ------------------------------------------------- */
 
@@ -12,11 +14,28 @@
 
 /* ------------------------------------------------- */
 
-
 ESPTelnet telnet;
 IPAddress ip;
-EscapeCodes ansi;
 uint16_t  port = 23;
+static const char LOG_TAG[] = "TelnetLog";
+static TaskHandle_t hTelnet = NULL;
+
+/* ------------------------------------------------- */
+
+static void telnet_task(void*) {
+    while(1) {
+        telnet.loop();
+        delay(100);
+    }
+    vTaskDelete(NULL);
+}
+
+// This function will be called by the ESP log library every time ESP_LOG needs to be performed when the telnet server is started.
+// Do NOT use the ESP_LOG* macro's in this function or things will explodify!
+int _telnet_log_vprintf(const char *fmt, va_list args) {
+    telnet.vprintf(fmt, args);
+    return vprintf(fmt, args);
+}
 
 /* ------------------------------------------------- */
 
@@ -41,6 +60,9 @@ bool isConnected() {
 bool connectToWiFi(const char* ssid, const char* password, int max_tries = 20, int pause = 500) {
   int i = 0;
   WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+  
   #if defined(ARDUINO_ARCH_ESP8266)
     WiFi.forceSleepWake();
     delay(200);
@@ -49,7 +71,8 @@ bool connectToWiFi(const char* ssid, const char* password, int max_tries = 20, i
   do {
     delay(pause);
     Serial.print(".");
-  } while (!isConnected() || i++ < max_tries);
+    i++;
+  } while (!isConnected() && i < max_tries);
   WiFi.setAutoReconnect(true);
   WiFi.persistent(true);
   return isConnected();
@@ -70,13 +93,6 @@ void errorMsg(String error, bool restart = true) {
 /* ------------------------------------------------- */
 
 void setupTelnet() {  
-  // passing on functions for various telnet events
-  telnet.onConnect(onTelnetConnect);
-  telnet.onConnectionAttempt(onTelnetConnectionAttempt);
-  telnet.onReconnect(onTelnetReconnect);
-  telnet.onDisconnect(onTelnetDisconnect);
-  telnet.onInputReceived(onTelnetInput);
-
   Serial.print("- Telnet: ");
   if (telnet.begin(port)) {
     Serial.println("running");
@@ -86,56 +102,17 @@ void setupTelnet() {
   }
 }
 
-/* ------------------------------------------------- */
-
-// (optional) callback functions for telnet events
-void onTelnetConnect(String ip) {
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" connected");
-  
-  telnet.print(ansi.cls());
-  telnet.print(ansi.home());
-  telnet.print(ansi.setFG(ANSI_BRIGHT_WHITE));
-  telnet.println("\nWelcome " + telnet.getIP());
-  telnet.println("(Use ^] + q  to disconnect.)");
-  telnet.print(ansi.reset());
+void setupLogging() {
+  xTaskCreate(
+      telnet_task,
+      "TELOG",
+      4096,
+      NULL,
+      1,
+      &hTelnet
+  );
+  esp_log_set_vprintf(_telnet_log_vprintf);
 }
-
-void onTelnetDisconnect(String ip) {
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" disconnected");
-}
-
-void onTelnetReconnect(String ip) {
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" reconnected");
-}
-
-void onTelnetConnectionAttempt(String ip) {
-  Serial.print("- Telnet: ");
-  Serial.print(ip);
-  Serial.println(" tried to connected");
-}
-
-void onTelnetInput(String str) {
-  // checks for a certain command
-  if (str == "ping") {
-    telnet.print(ansi.setFG(ANSI_BRIGHT_WHITE));    
-    telnet.println("> pong");
-    telnet.print(ansi.reset());
-    Serial.println("- Telnet: pong");
-  // disconnect the client
-  } else if (str == "bye") {
-    telnet.print(ansi.setFG(ANSI_BRIGHT_WHITE));
-    telnet.println("> disconnecting you...");
-    telnet.print(ansi.reset());
-
-    telnet.disconnectClient();
-    }
-  }
 
 /* ------------------------------------------------- */
 
@@ -150,6 +127,7 @@ void setup() {
     Serial.println();
     Serial.print("- Telnet: "); Serial.print(ip); Serial.print(":"); Serial.println(port);
     setupTelnet();
+    setupLogging();
   } else {
     Serial.println();    
     errorMsg("Error connecting to WiFi");
@@ -159,12 +137,12 @@ void setup() {
 /* ------------------------------------------------- */
 
 void loop() {
-  telnet.loop();
-
-  // send serial input to telnet as output
-  if (Serial.available()) {
-    telnet.print(Serial.read());
-  }
+  ESP_LOGI(LOG_TAG, "Info!");
+  delay(1000);
+  ESP_LOGW(LOG_TAG, "Warning!");
+  delay(1000);
+  ESP_LOGE(LOG_TAG, "Error!");
+  delay(1000);
 }
 
 //* ------------------------------------------------- */
