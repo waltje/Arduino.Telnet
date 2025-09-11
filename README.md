@@ -1,6 +1,6 @@
 # Telnet
 
-Library allowing you to set up a Telnet server.
+Library allowing you to set up a Telnet server on your Arduino.
 
 * Author: Fred N. van Kempen [https://github.com/waltje](https://github.con/waltje)
 * Copyright 2025 Fred N. van Kempen.
@@ -10,13 +10,17 @@ Library allowing you to set up a Telnet server.
 
 ## Description
 
-Use this library to set up a the Telnet server to communicate status messages or debug / error log output. This is especially useful when you don't have a serial connection to the Arduino.
+Use this library to set up a Telnet server to communicate status messages or debug / error log output. This is especially useful when you don't have a serial connection to the Arduino.
 
 Although originally developed for the ESP8266 and ESP32 architectures (with their built-in WiFi support, hence the original name of ESP_Telnet), it is now generalized for all architectures, and will support Ethernet (if the ETH.. files are included), WiFi if explicitly requested, and will default to WiFi if compiled for the ESP8266 and ESP32 platforms.
 
 To see the latest changes to the library please take a look at the [Changelog](https://github.com/waltje/Arduino.Telnet/blob/master/CHANGELOG.md).
 
 ## How To Use
+
+### Initialization
+
+* For Ethernet support, include either `ETHTelnet.h` or `ETHTelnetStream.h` and the library will then be compiled for Ethernet mode.  Currently, EthernetNG is required, but it will soon also allow for Ethernet3. For WiFi mode, you can simply include the `Telnet.h` or `TelnetStream.h` files, and WiFi mode will be set up.
 
 ### Starting / Stopping
 
@@ -45,7 +49,7 @@ To see the latest changes to the library please take a look at the [Changelog](h
 
 ### Output and Input
 
-* Via `print()`, `printf()`, `vsprintf()` and `println()` you can output text on the Telnet server.
+* Via `print()`, `printf()`, `vprintf()` and `println()` you can output text on the Telnet server.
 * To receive and parse input from the Telnet client you can add a handler via `onInputReceived()`.
 * By default, the library waits for a newline character from the client, and sends data to the callback handler one line at a time. This behavior can be deactivated by calling `setlineMode(false)`.
 * A default newline character `'\n'` is used to determine the end of a line. This can be overridden by by calling `setNewlineCharacter('\r')` where `'\r'` can be swapped with any character.
@@ -141,6 +145,7 @@ These are the constructors and the member functions the library provides:
     void println(const Printable& x);
     void println(void);
     size_t printf(const char *format, ...);
+    size_t vprintf(const char *format, va_list);
 
     String getIP(void) const;
     String getLastAttemptIP(void) const;
@@ -177,7 +182,8 @@ These are the constructors and the member functions the library provides:
     int read(void);
     int peek(void);
     void flush(void);
-    size_t write(uint8_t);
+    size_t write(uint8_t c);
+    size_t write(const uint8_t *data, size_t size);
 
     String getIP(void) const;
     String getLastAttemptIP(void) const;
