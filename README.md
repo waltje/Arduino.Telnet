@@ -27,7 +27,7 @@ To see the latest changes to the library please take a look at the [Changelog](h
 * The Telnet server only allows you to connect a single client to it.
 * You can use `getIP()` to get the connected client's IP address.
 * You can manually disconnect the client via `disconnectClient()`.
-* The server detects whether a client has disconnected. It checks periodically (default: every 1000ms). 🆕
+* The server detects whether a client has disconnected. It checks periodically (default: every 1000ms).
 * You can define the interval to check via `setKeepAliveInterval(int ms)`.
 
 ### Callback Handlers
@@ -56,7 +56,7 @@ To see the latest changes to the library please take a look at the [Changelog](h
 * This does not provide `print()` or `println()` functions, see [TelnetStreamExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetStreamExample/TelnetStreamExample.ino) for more details.
 * You'll also find the class definition below.
 
-### Using ANSI Escape Sequences 🆕
+### Using ANSI Escape Sequences
 
 * Please see [EscapeCodes.h](https://github.com/waltje/Arduino.Telnet/blob/master/src/EscapeCodes.h) for a list of constants and functions and take a look at the [AnsiExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/AnsiExample/AnsiExample.ino).
 * The functions of this class return Strings with ANSI escape sequences. Send these to the Telnet client:
@@ -181,7 +181,7 @@ These are the constructors and the member functions the library provides:
 
     String getIP(void) const;
     String getLastAttemptIP(void) const;
-    
+
     bool isConnected(void);
     void setKeepAliveInterval(int ms);
     int getKeepAliveInterval(void);
