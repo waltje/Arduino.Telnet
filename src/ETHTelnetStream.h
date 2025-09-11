@@ -3,7 +3,7 @@
 
 
 # define TELNET_USE_ETHERNET
-# include "ESPTelnetStream.h"
+# include "TelnetStream.h"
 
 
 #endif

@@ -1,21 +1,21 @@
-////////////////////////////////////////////////////////////////
-
 #if defined(TELNET_USE_ETHERNET)
 # include "ETHTelnet.h"
 #else
-# include "ESPTelnet.h"
+# include "Telnet.h"
 #endif
 
 #ifdef TNetwork
 
-#ifndef ESPTELNET_VPRINTF_BUFFER_SIZE
-#define ESPTELNET_VPRINTF_BUFFER_SIZE 64
-#endif
+# ifndef TELNET_VPRINTF_BUFSIZE
+#  define TELNET_VPRINTF_BUFSIZE 64
+# endif
 
-/////////////////////////////////////////////////////////////////
 
-void Telnet::handleInput() {
+void
+Telnet::handleInput(void)
+{
   char c = client.read();
+
   // collect string
   if (_lineMode) {
     if (c != _newlineCharacter) {
@@ -38,9 +38,10 @@ void Telnet::handleInput() {
   }
 }
 
-/////////////////////////////////////////////////////////////////
 
-void Telnet::println() {
+void
+Telnet::println(void)
+{
   if (client && isConnected()) {
     if (!client.println()) {
       onFailedWrite();
@@ -50,21 +51,27 @@ void Telnet::println() {
   }
 }
 
-/////////////////////////////////////////////////////////////////
 
-size_t Telnet::printf(const char* format, ...) {
+size_t
+Telnet::printf(const char *format, ...)
+{
   if (!client || !isConnected()) return 0;
   
   va_list arg;
   va_start(arg, format);
   size_t len = vprintf(format, arg);
   va_end(arg);
+
   return len;
 }
 
-size_t Telnet::vprintf(const char* format, va_list arg) {
-  char loc_buf[ESPTELNET_VPRINTF_BUFFER_SIZE];
+
+size_t
+Telnet::vprintf(const char *format, va_list arg)
+{
+  char loc_buf[TELNET_VPRINTF_BUFSIZE];
   int len = vsnprintf(loc_buf, sizeof(loc_buf), format, arg);
+
   if (len < 0) return 0;
 
   if (len >= (int)sizeof(loc_buf)) {
@@ -81,30 +88,34 @@ size_t Telnet::vprintf(const char* format, va_list arg) {
 
   return len;
 }
-/////////////////////////////////////////////////////////////////
 
-bool Telnet::isLineModeSet() {
+
+bool
+Telnet::isLineModeSet(void)
+{
   return _lineMode;
 }
 
-/////////////////////////////////////////////////////////////////
 
-void Telnet::setLineMode(bool value /* = true */) {
+void
+Telnet::setLineMode(bool value)
+{
   _lineMode = value;
 }
 
-/////////////////////////////////////////////////////////////////
 
-char Telnet::getNewlineCharacter() {
+char
+Telnet::getNewlineCharacter(void)
+{
   return _newlineCharacter;
 }
 
-/////////////////////////////////////////////////////////////////
 
-void Telnet::setNewlineCharacter(char value /* = '\n' */) {
+void
+Telnet::setNewlineCharacter(char value)
+{
   _newlineCharacter = value;
 }
 
-/////////////////////////////////////////////////////////////////
 
 #endif  /*TNetwork*/

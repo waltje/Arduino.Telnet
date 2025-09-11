@@ -4,6 +4,12 @@
 
 **Note:** Unreleased changes are checked in but not part of an official release (available through the Arduino IDE or PlatfomIO) yet. This allows you to test WiP features and give feedback to them.
 
+## [3.0.0] - 2025-09-11
+
+- full re-styling of code
+- implemented support for Ethernet, for now by including ETHTelnet.h or ETHTelnetStream.h. One day Arduino will get it right, and create a NetworkBase class for all WiFi and Ethernet device classes to inherit from. Until then, we must use this hack.
+- renamed to just Telnet, now that the ESP requirement is gone.
+
 ## [2.2.3] – 2025-01-26
 
 - removed `yield()` from [ESPTelnetBase.cpp](https://github.com/LennartHennigs/ESPTelnet/blob/main/src/ESPTelnetBase.cpp) `loop()` as it creates problems with context switching, see #73

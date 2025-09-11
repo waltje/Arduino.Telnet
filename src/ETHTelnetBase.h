@@ -5,7 +5,7 @@
 # ifndef TELNET_USE_ETHERNET
 #  define TELNET_USE_ETHERNET
 # endif
-# include "ESPTelnetBase.h"
+# include "TelnetBase.h"
 
 
-# endif
+#endif

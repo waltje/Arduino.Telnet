@@ -1,38 +1,38 @@
-# ESPTelnet
+# Telnet
 
-ESP8266/ESP32 library that allows you to setup a telnet server.
+Library allowing you to set up a Telnet server.
 
+* Author: Fred N. van Kempen [https://github.com/waltje](https://github.con/waltje)
+* Copyright 2025 Fred N. van Kempen.
 * Author: Lennart Hennigs [https://www.lennarthennigs.de](https://www.lennarthennigs.de)
-* Copyright (C) 2018-2025 Lennart Hennigs.
+* Copyright 2018-2025 Lennart Hennigs.
 * Released under the MIT license.
 
 ## Description
 
-Use this library to set up a the telnet server to communicate status messages or debug / error log output. This is especially useful when you don't have a serial connection to the ESP.
+Use this library to set up a the Telnet server to communicate status messages or debug / error log output. This is especially useful when you don't have a serial connection to the Arduino.
 
-It has been tested with ESP8266 and ESP32 devices.
+Although originally developed for the ESP8266 and ESP32 architectures (with their built-in WiFi support, hence the original name of ESP_Telnet), it is now generalized for all architectures, and will support Ethernet (if the ETH.. files are included), WiFi if explicitly requested, and will default to WiFi if compiled for the ESP8266 and ESP32 platforms.
 
-To see the latest changes to the library please take a look at the [Changelog](https://github.com/LennartHennigs/ESPTelnet/blob/master/CHANGELOG.md).
-
-If you find this library helpful please consider giving it a ⭐️ at [GitHub](https://github.com/LennartHennigs/ESPTelnet) and/or [buy me a ☕️](https://ko-fi.com/lennart0815). Thanks!
+To see the latest changes to the library please take a look at the [Changelog](https://github.com/waltje/Arduino.Telnet/blob/master/CHANGELOG.md).
 
 ## How To Use
 
 ### Starting / Stopping
 
-* Use the `begin()` and `stop()` to start or stop the telnet server.
-* It needs an active WiFi connection, or the ESP needs to be in softAP mode.
+* Use the `begin()` and `stop()` to start or stop the Telnet server.
+* It needs an active Ethernet connection or a WiFi connection (in Client mode or in softAP mode.)
 * You can set a custom port (other than 23) via the `begin()` function.
-* If you don't want the client to check for a WiFi connection (i.e. you use an Ethernet adapter) you can bypass the wifi connection check with the second parameter `begin(23, false)`.
-* The telnet server only allows you to connect a single client to it.
+* If you don't want the client to check for a connection (i.e. you use an Ethernet adapter) you can bypass the WIFI connection check with the second parameter `begin(23, false)`.
+* The Telnet server only allows you to connect a single client to it.
 * You can use `getIP()` to get the connected client's IP address.
 * You can manually disconnect the client via `disconnectClient()`.
 * The server detects whether a client has disconnected. It checks periodically (default: every 1000ms). 🆕
-* You can define the interval to check via `setKeepAliveInterval(int ms)`. 🆕
+* You can define the interval to check via `setKeepAliveInterval(int ms)`.
 
 ### Callback Handlers
 
-* The library uses callback handlers to notify you of different telnet events:
+* The library uses callback handlers to notify you of different Telnet events:
   * `void onConnect(CallbackFunction f);`
   * `void onConnectionAttempt(CallbackFunction f);`
   * `void onReconnect(CallbackFunction f);`
@@ -45,21 +45,21 @@ If you find this library helpful please consider giving it a ⭐️ at [GitHub](
 
 ### Output and Input
 
-* Via `print()`, `printf()` and `println()` you can output text on the telnet server.
-* To receive and parse input from the telnet client you can add a handler via `onInputReceived()`.
-* By default, the library waits for a newline character from the client, and sends data to the callback handler one line at a time. This behaviour can be deactivated by calling `setlineMode(false)`.
+* Via `print()`, `printf()`, `vsprintf()` and `println()` you can output text on the Telnet server.
+* To receive and parse input from the Telnet client you can add a handler via `onInputReceived()`.
+* By default, the library waits for a newline character from the client, and sends data to the callback handler one line at a time. This behavior can be deactivated by calling `setlineMode(false)`.
 * A default newline character `'\n'` is used to determine the end of a line. This can be overridden by by calling `setNewlineCharacter('\r')` where `'\r'` can be swapped with any character.
 
 ### Using stream functions
 
-* Alternatively, you can use the `Stream` implementation of ESPTelnet.
-* This does not provide `print()` or `println()` functions, see [TelnetStreamExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/TelnetStreamExample/TelnetStreamExample.ino) for more details.
+* Alternatively, you can use the `Stream` implementation of Telnet.
+* This does not provide `print()` or `println()` functions, see [TelnetStreamExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetStreamExample/TelnetStreamExample.ino) for more details.
 * You'll also find the class definition below.
 
 ### Using ANSI Escape Sequences 🆕
 
-* Please see [EscapeCodes.h](https://github.com/LennartHennigs/ESPTelnet/blob/master/src/EscapeCodes.h) for a list of constants and functions and take a look at the [AnsiExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/AnsiExample/AnsiExample.ino).
-* The functions of this class return Strings with ANSI escape sequences. Send these to the telnet client:
+* Please see [EscapeCodes.h](https://github.com/waltje/Arduino.Telnet/blob/master/src/EscapeCodes.h) for a list of constants and functions and take a look at the [AnsiExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/AnsiExample/AnsiExample.ino).
+* The functions of this class return Strings with ANSI escape sequences. Send these to the Telnet client:
 
   ``` c++
   telnet.print(ansi.cls());
@@ -80,7 +80,7 @@ If you find this library helpful please consider giving it a ⭐️ at [GitHub](
   #define DEBUG_ON 1
   ```
 
-* You can then define the output channels (serial and/or telnet):
+* You can then define the output channels (Serial and/or Telnet):
   
   ``` c++
   #define DEBUG_USE_SERIAL 1
@@ -93,7 +93,7 @@ If you find this library helpful please consider giving it a ⭐️ at [GitHub](
   * `DEBUG_MSG(x)` to print a message
   * `DEBUG_VAR(...)` to print a variable value
 
-* See the [DebugMacroExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/DebugMacroExample/DebugMacroExample.ino) for more details.
+* See the [DebugMacroExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/DebugMacroExample/DebugMacroExample.ino) for more details.
 
 ### The Loop
 
@@ -101,31 +101,31 @@ If you find this library helpful please consider giving it a ⭐️ at [GitHub](
 
 ## Examples
 
-* [TelnetServerExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/TelnetServerExample/TelnetServerExample.ino) – basic example
-* [TelnetServerExampleWithWiFiManager](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/TelnetServerWithWiFiManager/TelnetServerWithWiFiManager.ino) – basic example using [WiFiManager](https://github.com/tzapu/WiFiManager) (use it for ESP8266s)
-* [TelnetServerWithAutoconnect](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/TelnetServerWithAutoconnect/TelnetServerWithAutoconnect.ino) – basic example using [Autoconnect](https://github.com/Hieromon/AutoConnect) (use it for ESP266 or ESP32)
-* [DebugMacroExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/DebugMacroExample/DebugMacroExample.ino) – to see the debug macros in action
-* [TelnetStreamExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/TelnetStreamExample/TelnetStreamExample.ino) - stream example
-* [AnsiExample](https://github.com/LennartHennigs/ESPTelnet/blob/master/examples/AnsiExample/AnsiExample.ino) - sending ANSI escape codes
+* [TelnetServerExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetServerExample/TelnetServerExample.ino) – basic example
+* [TelnetServerExampleWithWiFiManager](https://github.com/waltjes/Arduino.Telnet/blob/master/examples/TelnetServerWithWiFiManager/TelnetServerWithWiFiManager.ino) – basic example using [WiFiManager](https://github.com/tzapu/WiFiManager) (use it for ESP8266s)
+* [TelnetServerWithAutoconnect](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetServerWithAutoconnect/TelnetServerWithAutoconnect.ino) – basic example using [Autoconnect](https://github.com/Hieromon/AutoConnect) (use it for ESP266 or ESP32)
+* [DebugMacroExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/DebugMacroExample/DebugMacroExample.ino) – to see the debug macros in action
+* [TelnetStreamExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetStreamExample/TelnetStreamExample.ino) - stream example
+* [AnsiExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/AnsiExample/AnsiExample.ino) - sending ANSI escape codes
 
 ## Notes
 
-* To see the latest changes to the library please take a look at the [Changelog](https://github.com/LennartHennigs/ESPTelnet/blob/master/CHANGELOG.md).
+* To see the latest changes to the library please take a look at the [Changelog](https://github.com/waltje/Arduino.Telnet/blob/master/CHANGELOG.md).
 
-* If you find this library helpful, please consider giving it a star at [GitHub](https://github.com/LennartHennigs/ESPTelnet). Thanks!
+* If you find this library helpful, please consider giving it a star at [GitHub](https://github.com/waltje/Arduino.Telnet). Thanks!
 
 ## Class Definition
 
 These are the constructors and the member functions the library provides:
 
-### ESPTelnet Definition
+### Telnet Definition
 
 ``` c++
-    ESPTelnet();
+    Telnet();
 
     bool begin(uint16_t port = 23, bool checkConnection = true);
-    void loop();
-    void stop();
+    void loop(void);
+    void stop(void);
 
     void print(const String &str);
     void println(const String &str);
@@ -139,20 +139,20 @@ These are the constructors and the member functions the library provides:
     void println(unsigned int n, int base);
     void print(const Printable& x);
     void println(const Printable& x);
-    void println();
+    void println(void);
     size_t printf(const char *format, ...);
 
-    String getIP() const;
-    String getLastAttemptIP() const;
+    String getIP(void) const;
+    String getLastAttemptIP(void) const;
 
-    bool isConnected();
+    bool isConnected(void);
     void setKeepAliveInterval(int ms);
-    int getKeepAliveInterval();
+    int getKeepAliveInterval(void);
 
-    bool isLineModeSet();
+    bool isLineModeSet(void);
     void setLineMode(bool value = true);
 
-    char getNewlineCharacter();
+    char getNewlineCharacter(void);
     void setNewlineCharacter(char value = '\n');
 
     void onConnect(CallbackFunction f);
@@ -164,27 +164,27 @@ These are the constructors and the member functions the library provides:
     void disconnectClient(bool triggerEvent = true);
 ```
 
-### ESPTelnetStream Definition
+### TelnetStream Definition
 
 ``` c++
-    ESPTelnetStream();
+    TelnetStream();
 
     bool begin(uint16_t port = 23, bool checkConnection = true);
-    void loop();
-    void stop();
+    void loop(void);
+    void stop(void);
 
-    int available();
-    int read();
-    int peek();
-    void flush();
+    int available(void);
+    int read(void);
+    int peek(void);
+    void flush(void);
     size_t write(uint8_t);
 
-    String getIP() const;
-    String getLastAttemptIP() const;
+    String getIP(void) const;
+    String getLastAttemptIP(void) const;
     
-    bool isConnected();
+    bool isConnected(void);
     void setKeepAliveInterval(int ms);
-    int getKeepAliveInterval();
+    int getKeepAliveInterval(void);
 
     void onConnect(CallbackFunction f);
     void onConnectionAttempt(CallbackFunction f);
@@ -197,10 +197,10 @@ These are the constructors and the member functions the library provides:
 
 ## Installation
 
-Open the Arduino IDE choose "Sketch > Include Library" and search for "ESPTelnet".
-Or download the [ZIP archive](https://github.com/lennarthennigs/ESPTelnet/zipball/master), and choose "Sketch > Include Library > Add .ZIP Library..." and select the downloaded file.
+Open the Arduino IDE choose "Sketch > Include Library" and search for "Telnet".
+You could also download the [ZIP archive](https://github.com/waltje/Arduino.Telnet/zipball/master), and choose "Sketch > Include Library > Add .ZIP Library..." and select the downloaded file.
 
-The "ESPTelnet" library is also available on the PlatformIO registry and can be included by adding the following line to the leb_deps option of the platformio.ini file:
+The "Telnet" library is also available on the PlatformIO registry and can be included by adding the following line to the leb_deps option of the platformio.ini file:
 
 ``` json
    lennarthennigs/ESP Telnet@^2.2.2
@@ -210,7 +210,8 @@ The "ESPTelnet" library is also available on the PlatformIO registry and can be 
 
 MIT License
 
-Copyright (c) 2018-2024 Lennart Hennigs
+Copyright 2025 Fred N. van Kempen
+Copyright 2018-2025 Lennart Hennigs
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -1,2 +1,2 @@
 #define TELNET_USE_ETHERNET
-#include "ESPTelnetBase.cpp"
+#include "TelnetBase.cpp"
