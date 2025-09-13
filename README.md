@@ -74,31 +74,6 @@ To see the latest changes to the library please take a look at the [Changelog](h
   telnet.print(ansi.reset());
   ```
 
-### Using it to Debug Code
-
-* A common use case is to use it for debuging remote devices, where you might not have access to Serial. Thus I added a few macros to make debugging easier:
-
-* To enable debugging you need to set `DEBUG_ON`:
-
-  ``` c++ 
-  #define DEBUG_ON 1
-  ```
-
-* You can then define the output channels (Serial and/or Telnet):
-  
-  ``` c++
-  #define DEBUG_USE_SERIAL 1
-  #define DEBUG_USE_TELNET 1
-  ```
-
-* After this you can use the following macros:
-  * `DEBUG_INFO` to see compilation the date & time of your sketch
-  * `DEBUG_WHERE` to print where this message is located (file & line number)
-  * `DEBUG_MSG(x)` to print a message
-  * `DEBUG_VAR(...)` to print a variable value
-
-* See the [DebugMacroExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/DebugMacroExample/DebugMacroExample.ino) for more details.
-
 ### The Loop
 
 * For the class to work, you need to call the `loop()` member function in your sketch's `loop()` function.
@@ -108,7 +83,6 @@ To see the latest changes to the library please take a look at the [Changelog](h
 * [TelnetServerExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetServerExample/TelnetServerExample.ino) – basic example
 * [TelnetServerExampleWithWiFiManager](https://github.com/waltjes/Arduino.Telnet/blob/master/examples/TelnetServerWithWiFiManager/TelnetServerWithWiFiManager.ino) – basic example using [WiFiManager](https://github.com/tzapu/WiFiManager) (use it for ESP8266s)
 * [TelnetServerWithAutoconnect](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetServerWithAutoconnect/TelnetServerWithAutoconnect.ino) – basic example using [Autoconnect](https://github.com/Hieromon/AutoConnect) (use it for ESP266 or ESP32)
-* [DebugMacroExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/DebugMacroExample/DebugMacroExample.ino) – to see the debug macros in action
 * [TelnetStreamExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/TelnetStreamExample/TelnetStreamExample.ino) - stream example
 * [AnsiExample](https://github.com/waltje/Arduino.Telnet/blob/master/examples/AnsiExample/AnsiExample.ino) - sending ANSI escape codes
 
