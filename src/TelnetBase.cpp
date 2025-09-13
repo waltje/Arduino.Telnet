@@ -2,16 +2,47 @@
 #ifdef TNetwork
 
 
-TelnetBaseClass::TelnetBaseClass(void)
+#if defined(ARDUINO_ARCH_AVR)
+static String
+getIPaddress(uint32_t ip)
 {
-  connected = false;
+  char temp[16];
+  uint8_t b1, b2, b3, b4;
+
+  /*
+   * It seems that the String() function in most cores does not
+   * convert the address into a dotted-decimal number, but just
+   * to an unsigned decimal. 
+   * 
+   * In addition, on AVR at least, a direct print of the shifted 
+   * bytes will mess up the numbers, so I now do it the weird way..
+    */
+  b1 = (ip & 0xff);
+  ip >>= 8;
+  b2 = (ip & 0xff);
+  ip >>= 8;
+  b3 = (ip & 0xff);
+  ip >>= 8;
+  b4 = (ip & 0xff);
+
+  snprintf_P(temp, sizeof(temp),
+             PSTR("%d.%d.%d.%d"), b1, b2, b3, b4);
+
+  return String(temp);
+}
+#endif
+
+
+TelnetBaseClass::TelnetBaseClass(void) :
+  _connected(false)
+{
 }
 
 
 bool
 TelnetBaseClass::begin(uint16_t port, bool checkConnection)
 {
-  ip = "";
+  _ip = "";
 
   if (checkConnection) {
 #ifndef TELNET_USE_ETHERNET
@@ -19,10 +50,10 @@ TelnetBaseClass::begin(uint16_t port, bool checkConnection)
     if (WiFi.status() != WL_CONNECTED && !_isIPSet(WiFi.softAPIP())) return false;
 #endif
   }
-  server_port = port;
-  server = TCPServer(port);
-  server.begin();
-  server.setNoDelay(true);
+  _server_port = port;
+  _server = TCPServer(port);
+  _server.begin();
+  _server.setNoDelay(true);
 
   return true;
 }
@@ -43,10 +74,13 @@ TelnetBaseClass::loop(void)
 void
 TelnetBaseClass::processClientConnection(void)
 {
-  if (!server.hasClient()) return;
+  TCPClient newClient;
 
-  TCPClient newClient = server.accept();
-  if (! connected)
+  if (! _server.hasClient())
+    return;
+
+  newClient = _server.accept();
+  if (! _connected)
     connectClient(newClient);
   else
     handleExistingConnection(newClient);
@@ -54,16 +88,20 @@ TelnetBaseClass::processClientConnection(void)
 
 
 void
-TelnetBaseClass::handleExistingConnection(TCPClient &newClient)
+TelnetBaseClass::handleExistingConnection(TCPClient& newClient)
 {
+#if defined(ARDUINO_ARCH_AVR)
+  String attemptedIp = getIPaddress((uint32_t)newClient.remoteIP());
+#else
   String attemptedIp = newClient.remoteIP().toString();
+#endif
 
-  if (!isConnected()) {
+  if (! isConnected()) {
     disconnectClient();
     return;
   }
 
-  if (attemptedIp == ip)
+  if (attemptedIp == _ip)
     handleReconnection(newClient, attemptedIp);
   else
     notifyConnectionAttempt(attemptedIp);
@@ -71,25 +109,28 @@ TelnetBaseClass::handleExistingConnection(TCPClient &newClient)
 
 
 void
-TelnetBaseClass::handleReconnection(TCPClient &newClient, const String &attemptedIp)
+TelnetBaseClass::handleReconnection(TCPClient& newClient, const String& attemptedIp)
 {
   disconnectClient(false);
   connectClient(newClient, false);
-  if (on_reconnect) on_reconnect(attemptedIp);
+
+  if (_on_reconnect)
+    _on_reconnect(attemptedIp);
 }
 
 
 void
-TelnetBaseClass::notifyConnectionAttempt(const String &attemptedIp)
+TelnetBaseClass::notifyConnectionAttempt(const String& attemptedIp)
 {
-  if (on_connection_attempt) on_connection_attempt(attemptedIp);
+  if (_on_connection_attempt)
+    _on_connection_attempt(attemptedIp);
 }
 
 
 void
 TelnetBaseClass::performKeepAliveCheck(void)
 {
-  if (doKeepAliveCheckNow() && connected && !isConnected()) {
+  if (doKeepAliveCheckNow() && _connected && !isConnected()) {
     disconnectClient();
   }
 }
@@ -98,7 +139,7 @@ TelnetBaseClass::performKeepAliveCheck(void)
 void
 TelnetBaseClass::handleClientInput(void)
 {
-  if (on_input && client && client.available()) {
+  if (_on_input && _client && _client.available()) {
     handleInput();
   }
 }
@@ -108,10 +149,10 @@ bool
 TelnetBaseClass::doKeepAliveCheckNow(void)
 {
   uint32_t currentTime = millis();
-  uint32_t timeElapsed = currentTime - last_status_check;
+  uint32_t timeElapsed = currentTime - _last_status_check;
 
-  if (timeElapsed >= static_cast<uint32_t>(keep_alive_interval)) {
-    last_status_check = currentTime;
+  if (timeElapsed >= static_cast<uint32_t>(_keep_alive_interval)) {
+    _last_status_check = currentTime;
     return true;
   }
 
@@ -122,45 +163,45 @@ TelnetBaseClass::doKeepAliveCheckNow(void)
 void
 TelnetBaseClass::setKeepAliveInterval(int ms)
 {
-  keep_alive_interval = ms;
+  _keep_alive_interval = ms;
 }
 
 
 int
 TelnetBaseClass::getKeepAliveInterval(void)
 {
-  return keep_alive_interval;
+  return _keep_alive_interval;
 }
 
 
 void
 TelnetBaseClass::flush(void)
 {
-  if (!client || !isConnected())
+  if (!_client || !isConnected())
     return;
 
 // only the ESP8266 has a "bool flush()" method
 // https://github.com/esp8266/Arduino/blob/master/libraries/ESP8266WiFi/src/WiFiClient.cpp#L306
 #ifdef ARDUINO_ARCH_ESP8266
-  if (!client.flush(this->getKeepAliveInterval())) {
+  if (!_client.flush(this->getKeepAliveInterval())) {
     onFailedWrite();
   } else {
     onSuccessfullyWrite();
   }
 #else
-  client.flush();
+  _client.flush();
 #endif
 }
 
 
 size_t
-TelnetBaseClass::write(uint8_t data)
+TelnetBaseClass::write(const uint8_t *data, size_t size)
 {
-  if (!client || !isConnected())
+  if (! _client || !isConnected())
     return 0;
 
-  size_t written = client.write(data);
-  if (! written)
+  size_t written = _client.write(data, size);
+  if (written != size)
     onFailedWrite();
   else
     onSuccessfullyWrite();
@@ -170,13 +211,13 @@ TelnetBaseClass::write(uint8_t data)
 
 
 size_t
-TelnetBaseClass::write(const uint8_t* data, size_t size)
+TelnetBaseClass::write(uint8_t data)
 {
-  if (!client || !isConnected())
+  if (!_client || !isConnected())
     return 0;
 
-  size_t written = client.write(data, size);
-  if (written != size)
+  size_t written = _client.write(data);
+  if (! written)
     onFailedWrite();
   else
     onSuccessfullyWrite();
@@ -188,13 +229,20 @@ TelnetBaseClass::write(const uint8_t* data, size_t size)
 void
 TelnetBaseClass::connectClient(TClient c, bool triggerEvent)
 {
-  client = c;
-  ip = client.remoteIP().toString();
-  client.setNoDelay(true);
-  client.setTimeout(this->getKeepAliveInterval());
-  if (triggerEvent && on_connect != NULL) on_connect(ip);
+#if defined(ARDUINO_ARCH_AVR)
+  _ip = getIPaddress((uint32_t)c.remoteIP());
+#else
+  _ip = c.remoteIP().toString();
+#endif
+
+  _client = c;
+  _client.setNoDelay(true);
+  _client.setTimeout(this->getKeepAliveInterval());
+  if (triggerEvent && _on_connect != NULL)
+    _on_connect(_ip);
   emptyClientStream();
-  connected = true;
+
+  _connected = true;
 }
 
 
@@ -202,10 +250,14 @@ void
 TelnetBaseClass::disconnectClient(bool triggerEvent)
 {
   emptyClientStream();
-  client.stop();
-  if (triggerEvent && on_disconnect != NULL) on_disconnect(ip);
-  ip = "";
-  connected = false;
+  _client.stop();
+
+  if (triggerEvent && _on_disconnect != NULL)
+    _on_disconnect(_ip);
+
+  _ip = "";
+
+  _connected = false;
 }
 
 
@@ -215,6 +267,8 @@ TelnetBaseClass::_isIPSet(IPAddress ip)
 {
 #if defined(ARDUINO_ARCH_ESP8266)
   return ip.isSet();
+#elif defined(ARDUINO_ARCH_AVR)
+  return (uint32_t)ip != 0;
 #else
   // this works for ESP32, hopefully for others as well
   return ip.toString() != "0.0.0.0";
@@ -225,7 +279,7 @@ TelnetBaseClass::_isIPSet(IPAddress ip)
 void
 TelnetBaseClass::stop(void)
 {
-  server.stop();
+  _server.stop();
 }
 
 
@@ -235,11 +289,11 @@ TelnetBaseClass::isConnected(void)
   bool res = true;
 
 #if defined(ARDUINO_ARCH_ESP8266)
-  res = client.status() == ESTABLISHED;
+  res = _client.status() == ESTABLISHED;
 #elif defined(ARDUINO_ARCH_ESP32)
-  res = client.connected();
+  res = _client.connected();
 #else
-  res = client.connected();
+  res = _client.connected();
 #endif
 
   return res;
@@ -249,24 +303,24 @@ TelnetBaseClass::isConnected(void)
 String
 TelnetBaseClass::getIP(void) const
 {
-  return ip;
+  return _ip;
 }
 
 
 String
 TelnetBaseClass::getLastAttemptIP(void) const
 {
-  return attemptIp;
+  return _attemptIp;
 }
 
 
 void
 TelnetBaseClass::onFailedWrite(void)
 {
-  failedWrites++;
+  _failedWrites++;
 
-  if (failedWrites >= MAX_ERRORS_ON_WRITE) {
-    failedWrites = 0;
+  if (_failedWrites >= MAX_ERRORS_ON_WRITE) {
+    _failedWrites = 0;
     disconnectClient();
   }
 }
@@ -275,9 +329,8 @@ TelnetBaseClass::onFailedWrite(void)
 void
 TelnetBaseClass::onSuccessfullyWrite(void)
 {
-  if (failedWrites > 0) {
-    failedWrites = 0;
-  }
+  if (_failedWrites > 0)
+    _failedWrites = 0;
 }
 
 
@@ -286,51 +339,51 @@ TelnetBaseClass::emptyClientStream(void)
 {
   flush();
   delay(50);
-  while (client.available()) {
-    client.read();
-  }
+
+  while (_client.available())
+    _client.read();
 }
 
 
 void
 TelnetBaseClass::onConnect(CallbackFunction f)
 {
-  on_connect = f;
+  _on_connect = f;
 }
 
 
 void
 TelnetBaseClass::onConnectionAttempt(CallbackFunction f)
 {
-  on_connection_attempt = f;
+  _on_connection_attempt = f;
 }
 
 
 void
 TelnetBaseClass::onReconnect(CallbackFunction f)
 {
-  on_reconnect = f;
+  _on_reconnect = f;
 }
 
 
 void
 TelnetBaseClass::onDisconnect(CallbackFunction f)
 {
-  on_disconnect = f;
+  _on_disconnect = f;
 }
 
 
 void
 TelnetBaseClass::onInputReceived(CallbackFunction f)
 {
-  on_input = f;
+  _on_input = f;
 }
 
 
 TCPClient&
 TelnetBaseClass::getClient(void)
 {
-  return client;
+  return _client;
 }
 
 

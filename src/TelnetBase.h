@@ -78,30 +78,30 @@ class TelnetBaseClass {
     void onInputReceived(CallbackFunction f);
 
   protected:
-    TCPServer server = TCPServer(23);  // must be initalized here
-    TCPClient client;
-    bool connected = false;  // needed because I cannot do "client = NULL"
-    String ip = "";
-    String attemptIp;
-    String input = "";
-
-    uint16_t server_port = 23;
-    int keep_alive_interval = KEEP_ALIVE_INTERVAL_MS;
-    long last_status_check;
-    unsigned int failedWrites = 0;
-
-    CallbackFunction on_connect = NULL;
-    CallbackFunction on_reconnect = NULL;
-    CallbackFunction on_disconnect = NULL;
-    CallbackFunction on_connection_attempt = NULL;
-    CallbackFunction on_input = NULL;
-
     virtual void onFailedWrite(void);
     virtual void onSuccessfullyWrite(void);
 
     void emptyClientStream(void);
     bool _isIPSet(IPAddress ip);
     virtual void handleInput(void) = 0;
+
+    TCPServer _server = TCPServer(23);  // must be initalized here
+    uint16_t _server_port = 23;
+    TCPClient _client;
+    bool _connected = false;  // needed because I cannot do "client = NULL"
+    String _ip = "";
+    String _attemptIp;
+    String _input = "";
+
+    int _keep_alive_interval = KEEP_ALIVE_INTERVAL_MS;
+    long _last_status_check;
+    unsigned int _failedWrites = 0;
+
+    CallbackFunction _on_connect = NULL;
+    CallbackFunction _on_reconnect = NULL;
+    CallbackFunction _on_disconnect = NULL;
+    CallbackFunction _on_connection_attempt = NULL;
+    CallbackFunction _on_input = NULL;
 
   private:
     void connectClient(TCPClient c, bool triggerEvent = true);

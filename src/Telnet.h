@@ -17,8 +17,8 @@ class Telnet : public TelnetBaseClass {
   
     template<typename T>
     void print(const T& data) {
-      if (client && isConnected()) {
-        if (!client.print(data)) {
+      if (_client && isConnected()) {
+        if (! _client.print(data)) {
           onFailedWrite();
         } else {
           onSuccessfullyWrite();
@@ -28,8 +28,8 @@ class Telnet : public TelnetBaseClass {
 
     template<typename T>
     void println(const T& data) {
-      if (client && isConnected()) {
-        if (!client.println(data)) {
+      if (_client && isConnected()) {
+        if (! _client.println(data)) {
           onFailedWrite();
         } else {
           onSuccessfullyWrite();
@@ -39,8 +39,8 @@ class Telnet : public TelnetBaseClass {
 
     template<typename T>
     void print(const T& data, int base) {
-      if (client && isConnected()) {
-        if (!client.print(data, base)) {
+      if (_client && isConnected()) {
+        if (! _client.print(data, base)) {
           onFailedWrite();
         } else {
           onSuccessfullyWrite();
@@ -50,8 +50,8 @@ class Telnet : public TelnetBaseClass {
 
     template<typename T>
     void println(const T& data, int base) {
-      if (client && isConnected()) {
-        if (!client.println(data, base)) {
+      if (_client && isConnected()) {
+        if (! _client.println(data, base)) {
           onFailedWrite();
         } else {
           onSuccessfullyWrite();

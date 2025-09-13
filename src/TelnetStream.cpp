@@ -10,16 +10,17 @@
 void
 TelnetStream::handleInput(void)
 {
-  char c = client.read();
-  on_input(String(c));
+  char c = _client.read();
+
+  _on_input(String(c));
 }
 
 
 int
 TelnetStream::available(void)
 {
-  if (client && isConnected())
-    return client.available();
+  if (_client && isConnected())
+    return _client.available();
 
   return 0;
 }
@@ -28,8 +29,8 @@ TelnetStream::available(void)
 int
 TelnetStream::read(void)
 {
-  if (client && isConnected())
-    return client.read();
+  if (_client && isConnected())
+    return _client.read();
 
   return 0;
 }
@@ -38,8 +39,8 @@ TelnetStream::read(void)
 int
 TelnetStream::peek(void)
 {
-  if (client && isConnected())
-    return client.peek();
+  if (_client && isConnected())
+    return _client.peek();
 
   return 0;
 }

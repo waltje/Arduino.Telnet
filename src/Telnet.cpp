@@ -14,26 +14,26 @@
 void
 Telnet::handleInput(void)
 {
-  char c = client.read();
+  char c = _client.read();
 
   // collect string
   if (_lineMode) {
     if (c != _newlineCharacter) {
       if (c >= 32 && c < 127) {
-        input += c;
+        _input += c;
       }
       // EOL -> send input
     } else {
-      on_input(input);
-      input = "";
+      _on_input(_input);
+      _input = "";
     }
     // send individual characters
   } else {
-    if (input.length()) {
-      on_input(input + String(c));
-      input = "";
+    if (_input.length()) {
+      _on_input(_input + String(c));
+      _input = "";
     } else {
-      on_input(String(c));
+      _on_input(String(c));
     }
   }
 }
@@ -42,12 +42,11 @@ Telnet::handleInput(void)
 void
 Telnet::println(void)
 {
-  if (client && isConnected()) {
-    if (!client.println()) {
+  if (_client && isConnected()) {
+    if (! _client.println())
       onFailedWrite();
-    } else {
+    else
       onSuccessfullyWrite();
-    }
   }
 }
 
@@ -55,7 +54,8 @@ Telnet::println(void)
 size_t
 Telnet::printf(const char *format, ...)
 {
-  if (!client || !isConnected()) return 0;
+  if (!_client || !isConnected())
+    return 0;
   
   va_list arg;
   va_start(arg, format);
@@ -72,19 +72,19 @@ Telnet::vprintf(const char *format, va_list arg)
   char loc_buf[TELNET_VPRINTF_BUFSIZE];
   int len = vsnprintf(loc_buf, sizeof(loc_buf), format, arg);
 
-  if (len < 0) return 0;
+  if (len < 0)
+    return 0;
 
   if (len >= (int)sizeof(loc_buf)) {
-    char* temp = (char*)malloc(len + 1);
+    char *temp = (char *)malloc(len + 1);
     if (temp == nullptr) {
       return 0;
     }
     vsnprintf(temp, len + 1, format, arg);
-    len = write((uint8_t*)temp, len);
+    len = write((uint8_t *)temp, len);
     free(temp);
-  } else {
-    len = write((uint8_t*)loc_buf, len);
-  }
+  } else
+    len = write((uint8_t *)loc_buf, len);
 
   return len;
 }
